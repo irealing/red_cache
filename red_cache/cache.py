@@ -1,6 +1,5 @@
 import json
 import logging
-import pickle
 import random
 import time
 import uuid
@@ -10,6 +9,10 @@ from typing import Any, Callable, Iterable, Generator
 from redis import Redis
 from redis.exceptions import ConnectionError, TimeoutError
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 """缓存工具"""
 
 __author__ = 'Memory_Leak<irealing@163.com>'
