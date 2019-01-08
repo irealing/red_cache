@@ -10,7 +10,7 @@ from redis import Redis
 from redis.exceptions import ConnectionError, TimeoutError
 
 try:
-    import cPickle as pickle
+    import _pickle as pickle
 except ImportError:
     import pickle
 """缓存工具"""
