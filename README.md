@@ -3,6 +3,10 @@
 #### 介绍
 基于Redis实现的Python缓存工具
 #### 示例
+##### 安装方法
+```shell
+$ pip install red-cache==0.0.2
+```
 
 ##### 缓存函数执行结果
 

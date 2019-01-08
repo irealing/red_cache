@@ -12,7 +12,7 @@ from redis.exceptions import ConnectionError, TimeoutError
 
 """缓存工具"""
 
-__author__ = 'Memory_Leak<yuz@cnns.net>'
+__author__ = 'Memory_Leak<irealing@163.com>'
 
 
 class RedisCache(object):
