@@ -5,7 +5,7 @@
 #### 示例
 ##### 安装方法
 ```shell
-$ pip install red-cache==0.0.3
+$ pip install red-cache==0.0.4
 ```
 
 ##### 缓存函数执行结果
@@ -33,6 +33,35 @@ class Demo:
         return
 
     xxx = redis_cache.property(key=lambda: "Demo::xxx", ex=10)(lambda self: self.load_xxx())
+
+```
+#### 删除缓存
+
+```python
+
+@redis_cache.remove(lambda o: "auth::user:{}".format(o))
+def modify_user(user_id):
+    # DO MODIFY USER
+    pass
+
+```
+使用返回值
+
+```python
+
+@redis_cache.remove(lambda o: "auth::user:{}".format(o), by_return=True)
+def modify_user(user_id):
+    # DO MODIFY USER
+    return "*********"
+```
+使用生成器
+
+```python
+@redis_cache.remove(lambda o: "auth::user:{}".format(o), by_return=True)
+def modify_users(users):
+    # modify users
+    for u in users:
+        yield u
 
 ```
 
