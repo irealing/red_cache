@@ -14,4 +14,5 @@ setup(
     packages=find_packages(),
     install_requires=('redis>=3.0.1',),
     long_description=readme,
+    long_description_content_type='text/markdown',
 )

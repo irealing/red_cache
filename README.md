@@ -5,7 +5,7 @@
 #### 示例
 ##### 安装方法
 ```shell
-$ pip install red-cache==0.0.4
+$ pip install red-cache
 ```
 
 ##### 缓存函数执行结果
@@ -65,4 +65,6 @@ def modify_users(users):
 
 ```
 
-@author:[Memory_Leak](http://vvia.xyz/wjLSh5)
+
+
+@author:[Memory_Leak](https://github.com/irealing/red_cache)
