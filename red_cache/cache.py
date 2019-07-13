@@ -143,6 +143,15 @@ class RedisCache(object):
 
         return _wraps
 
+    def token_meta(self):
+        def _new(cls_name, bases, attr):
+            if CachedToken not in bases:
+                raise IllegalException('class {} must be subclass of {}'.format(cls_name, CachedToken))
+            attr.update(red_cache=self)
+            return type(cls_name, bases, attr)
+
+        return _new
+
 
 class RedProperty(object):
     """从Redis加载的属性"""
