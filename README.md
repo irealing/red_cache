@@ -65,6 +65,55 @@ def modify_users(users):
 
 ```
 
+#### 临时令牌工具
+
+```python
+import uuid
+
+from red_cache import RedisCache, CachedToken
+
+red_cache = RedisCache(dict(host='192.168.99.213', db=9))
+
+
+# 声明 Token令牌类，集成CachedToken
+class Token(CachedToken, metaclass=red_cache.token_meta):
+
+    # 使用metaclass时可自动注入RedisCache对象到当前类对象
+    # 使用类属性`red_cache`指定绑定的RedisCache亦可
+
+    def __init__(self, token: str, username: str):
+        super().__init__()
+        self.token = token
+        self.username = username
+
+    # 使用cache_key_prefix指定缓存名称前缀
+    cache_key_prefix = property(lambda self: self.__class__.__name__)
+
+    # id 即当前令牌对象唯一值
+    @property
+    def id(self):
+        return self.token
+
+    # 返回字典，CachedToken使用标准库的json包序列化该字典作为对应缓存的值
+    def marshal(self) -> dict:
+        return dict(token=self.token, username=self.username)
+
+    @classmethod
+    def new(cls, username: str):
+        return cls(token=uuid.uuid1().hex, username=username)
+
+
+if __name__ == '__main__':
+    tk = Token.new('/**/').save()
+    # 使用ID读取令牌
+    tk = Token.read(tk.token)
+    # 刷新，即强制写入令牌到Redis
+    tk.flush()
+    # 删除令牌
+    tk.remove()
+
+```
+
 
 
 @author:[Memory_Leak](https://github.com/irealing/red_cache)
