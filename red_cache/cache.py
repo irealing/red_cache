@@ -265,6 +265,9 @@ class CachedToken(metaclass=ABCMeta):
             return None
         return cls(**ret).flush() if flush else cls(**ret)
 
+    def remove(self):
+        self.red_cache.remove(self.key)(lambda: None)()
+
     def flush(self):
         self._save()
         return self
