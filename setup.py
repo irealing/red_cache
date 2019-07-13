@@ -7,9 +7,9 @@ with io.open("README.md", 'rt', encoding='utf-8') as f:
     readme = f.read()
 setup(
     name='red_cache',
-    version='0.0.4',
+    version='0.0.5',
     author='Memory_Leak',
-    url="http://vvia.xyz/wjLSh5",
+    url="https://gitee.com/irealing/red_cache",
     author_email='irealing@163.com',
     packages=find_packages(),
     install_requires=('redis>=3.0.1',),

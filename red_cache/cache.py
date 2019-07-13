@@ -3,8 +3,10 @@ import logging
 import random
 import time
 import uuid
+from abc import ABCMeta, abstractmethod
 from functools import wraps
-from typing import Any, Callable, Iterable, Generator
+from typing import Any, Callable, Iterable, Generator, Optional
+from typing import TypeVar, Type
 
 from redis import Redis
 from redis.exceptions import ConnectionError, TimeoutError
@@ -16,6 +18,13 @@ except ImportError:
 """缓存工具"""
 
 __author__ = 'Memory_Leak<irealing@163.com>'
+
+T = TypeVar('T')
+
+
+class IllegalException(Exception):
+    def __init__(self, *args, **kwargs):
+        super(Exception, self).__init__(*args, **kwargs)
 
 
 class RedisCache(object):
@@ -223,3 +232,42 @@ class RedLock(object):
 
     def locked(self):
         return self._redis.get(self._resource) == self._key_value
+
+
+class CachedToken(metaclass=ABCMeta):
+    red_cache: Optional[RedisCache]
+    cache_key_prefix = ""
+    cache_ttl = 1800
+
+    @abstractmethod
+    def __init__(self):
+        pass
+
+    @property
+    @abstractmethod
+    def id(self):
+        pass
+
+    @abstractmethod
+    def marshal(self) -> dict:
+        pass
+
+    key = property(lambda self: "{}:{}".format(self.cache_key_prefix or self.__class__.__name__, self.id))
+
+    def _save(self):
+        self.red_cache.force_cache(self.key, encoder=self.red_cache.json_encoder, ex=self.cache_ttl)(self.marshal)()
+
+    @classmethod
+    def read(cls: Type[T], tid: str, flush: bool = True) -> Optional[T]:
+        key = "{}:{}".format(cls.cache_key_prefix or cls.__name__, tid)
+        ret = cls.red_cache.json_cache(key, ex=cls.cache_ttl)(lambda: None)()
+        if not ret:
+            return None
+        return cls(**ret).flush() if flush else cls(**ret)
+
+    def flush(self):
+        self._save()
+        return self
+
+    def save(self):
+        return self.flush()
