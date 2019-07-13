@@ -65,6 +65,17 @@ def modify_users(users):
 
 ```
 
+#### 基于Redis的分布式锁
+
+```python
+
+@red_cache.red_lock(lambda uid, **kwargs: "red::lock:{}".format(uid), ttl=100000, retry_times=10, retry_delay=200)
+def modify_user(uid: str, **kwargs):
+    # DO MODIFY USER
+    pass
+
+```
+
 #### 临时令牌工具
 
 ```python
