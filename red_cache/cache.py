@@ -10,6 +10,7 @@ from typing import TypeVar, Type
 
 from redis import Redis
 from redis.exceptions import ConnectionError, TimeoutError
+from .counter import RedCounter, HashCounter
 
 try:
     import _pickle as pickle
@@ -23,8 +24,8 @@ T = TypeVar('T')
 
 
 class IllegalException(Exception):
-    def __init__(self, *args, **kwargs):
-        super(Exception, self).__init__(*args, **kwargs)
+    def __init__(self, *args):
+        super(Exception, self).__init__(*args)
 
 
 class RedisCache(object):
@@ -142,6 +143,12 @@ class RedisCache(object):
             return __do
 
         return _wraps
+
+    def counter(self, resource: str, step: int = 1) -> RedCounter:
+        return RedCounter(self._redis, resource, step)
+
+    def hash_counter(self, resource: str, key: str, step: int):
+        return HashCounter(self._redis, resource, key, step)
 
     def token_meta(self):
         def _new(cls_name, bases, attr):

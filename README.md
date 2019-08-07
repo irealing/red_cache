@@ -83,7 +83,7 @@ import uuid
 
 from red_cache import RedisCache, CachedToken
 
-red_cache = RedisCache(dict(host='192.168.99.213', db=9))
+red_cache = RedisCache(dict(host='10.0.0.11', db=9))
 
 
 # 声明 Token令牌类，集成CachedToken
@@ -125,6 +125,29 @@ if __name__ == '__main__':
 
 ```
 
+#### 计数器工具
 
+```python
+from red_cache import RedisCache
+
+red_cache = RedisCache(dict(host='10.0.0.11'))
+
+
+class A:
+    # 自增计数器
+    counter = red_cache.counter("resource::a", 3)
+    # 自减计数器
+    desc = red_cache.counter("resource:desc", -2)
+    # 基于HASH的自增计数器
+    score = red_cache.hash_counter("score", "a", 1)
+
+    def __init__(self):
+        self._sign = red_cache.counter("{}::sign:{}".format(self.__class__.__name__, id(self)))
+
+    # 使用属性
+    sign = property(lambda self: self._sign.get())
+
+
+```
 
 @author:[Memory_Leak](https://github.com/irealing/red_cache)
