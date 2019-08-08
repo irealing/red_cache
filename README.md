@@ -135,11 +135,11 @@ red_cache = RedisCache(dict(host='10.0.0.11'))
 
 class A:
     # 自增计数器
-    counter = red_cache.counter("resource::a", 3)
+    counter = red_cache.counter("resource::a", 3,init=lambda:20*20)
     # 自减计数器
     desc = red_cache.counter("resource:desc", -2)
     # 基于HASH的自增计数器
-    score = red_cache.hash_counter("score", "a", 1)
+    score = red_cache.hash_counter("score", "a", 1,init=lambda:20+1)
 
     def __init__(self):
         self._sign = red_cache.counter("{}::sign:{}".format(self.__class__.__name__, id(self)))

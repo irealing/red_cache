@@ -1,6 +1,8 @@
 """基於Redis的計數器工具"""
-from redis import Redis
 from abc import ABCMeta, abstractmethod
+from typing import Callable, Optional
+
+from redis import Redis
 
 __author__ = 'Memory_Leak<irealing@163.com>'
 
@@ -21,10 +23,12 @@ class Counter(metaclass=ABCMeta):
 
 
 class RedCounter(Counter):
-    def __init__(self, redis: Redis, resource: str, step: int):
+    def __init__(self, redis: Redis, resource: str, step: int, init: Optional[Callable[[], int]] = None):
         super().__init__(redis, resource, step)
         self._amount = abs(step)
         self._getter = self.decr if step < 0 else self.incr
+        if init:
+            redis.set(resource, init())
 
     value = property(lambda self: self._getter())
 
@@ -44,9 +48,11 @@ class RedCounter(Counter):
 
 
 class HashCounter(Counter):
-    def __init__(self, redis: Redis, resource: str, key: str, step: int):
+    def __init__(self, redis: Redis, resource: str, key: str, step: int, init: Optional[Callable[[], int]] = None):
         super().__init__(redis, resource, step)
         self._key = key
+        if init:
+            redis.hset(resource, key, init())
 
     key = property(lambda self: self._key)
 

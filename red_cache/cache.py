@@ -10,6 +10,7 @@ from typing import TypeVar, Type
 
 from redis import Redis
 from redis.exceptions import ConnectionError, TimeoutError
+
 from .counter import RedCounter, HashCounter
 
 try:
@@ -144,11 +145,11 @@ class RedisCache(object):
 
         return _wraps
 
-    def counter(self, resource: str, step: int = 1) -> RedCounter:
-        return RedCounter(self._redis, resource, step)
+    def counter(self, resource: str, step: int = 1, init: Optional[Callable[[], int]] = None) -> RedCounter:
+        return RedCounter(self._redis, resource, step, init)
 
-    def hash_counter(self, resource: str, key: str, step: int):
-        return HashCounter(self._redis, resource, key, step)
+    def hash_counter(self, resource: str, key: str, step: int = 1, init: Optional[Callable[[], int]] = None):
+        return HashCounter(self._redis, resource, key, step, init)
 
     def token_meta(self):
         def _new(cls_name, bases, attr):
