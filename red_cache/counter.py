@@ -30,7 +30,7 @@ class RedCounter(Counter):
         if init:
             redis.set(resource, init())
 
-    value = property(lambda self: self._getter())
+    value = property(lambda self: int(self._redis.get(self._resource)) or 0)
 
     def get(self):
         return self._getter()
@@ -55,6 +55,7 @@ class HashCounter(Counter):
             redis.hset(resource, key, init())
 
     key = property(lambda self: self._key)
+    value = property(lambda self: int(self._redis.hget(self.resource, self._key)) or 0)
 
     def get(self):
         return self._redis.hincrby(self.resource, self.key, self.step)
