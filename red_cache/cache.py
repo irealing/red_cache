@@ -145,8 +145,9 @@ class RedisCache(object):
 
         return _wraps
 
-    def counter(self, resource: str, step: int = 1, init: Optional[Callable[[], int]] = None) -> RedCounter:
-        return RedCounter(self._redis, resource, step, init)
+    def counter(self, resource: str, step: int = 1, init: Optional[Callable[[], int]] = None, ex: int = 0,
+                force_init: bool = False) -> RedCounter:
+        return RedCounter(self._redis, resource, step, init, ex, force_init)
 
     def hash_counter(self, resource: str, key: str, step: int = 1, init: Optional[Callable[[], int]] = None):
         return HashCounter(self._redis, resource, key, step, init)

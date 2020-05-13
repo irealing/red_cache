@@ -13,7 +13,10 @@ class Counter(metaclass=ABCMeta):
         self._step = step
         self._resource = resource
 
-    redis = property(lambda self: self._redis)
+    @property
+    def redis(self):
+        return self._redis
+
     step = property(lambda self: self._step)
     resource = property(lambda self: self._resource)
 
@@ -23,12 +26,26 @@ class Counter(metaclass=ABCMeta):
 
 
 class RedCounter(Counter):
-    def __init__(self, redis: Redis, resource: str, step: int, init: Optional[Callable[[], int]] = None):
+    _init_script = """
+    if (redis.call("exists", KEYS[1]) ~= 1 or KEYS[4] == "true") then
+        if (tonumber(KEYS[3]) > 0) then
+            redis.call("setex", KEYS[1], KEYS[3], KEYS[2])
+        else
+            redis.call("set", KEYS[1], KEYS[2])
+        end
+    end
+    """
+
+    def __init__(self, redis: Redis, resource: str, step: int, init: Optional[Callable[[], int]] = None,
+                 ex: int = 0, force_init: bool = False):
         super().__init__(redis, resource, step)
         self._amount = abs(step)
         self._getter = self.decr if step < 0 else self.incr
         if init:
-            redis.set(resource, init())
+            self._setup(resource, init(), ex, force_init)
+
+    def _setup(self, resource: str, value: int, ex: int, force: bool):
+        self.redis.eval(self._init_script, 4, resource, value, ex, 'true' if force else 'false')
 
     value = property(lambda self: int(self._redis.get(self._resource)) or 0)
 
