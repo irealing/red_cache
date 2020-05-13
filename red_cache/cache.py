@@ -5,7 +5,7 @@ import time
 import uuid
 from abc import ABCMeta, abstractmethod
 from functools import wraps
-from typing import Any, Callable, Iterable, Generator, Optional
+from typing import Any, Callable, Iterable, Generator, Optional, Mapping, Tuple
 from typing import TypeVar, Type
 
 from redis import Redis
@@ -161,6 +161,9 @@ class RedisCache(object):
 
         return _new
 
+    def red_hash(self, resource: str, kv: Mapping[str, str] = None) -> 'RedHash':
+        return RedHash(self._redis, resource, kv)
+
 
 class RedProperty(object):
     """从Redis加载的属性"""
@@ -292,3 +295,46 @@ class CachedToken(metaclass=ABCMeta):
 
     def save(self):
         return self.flush()
+
+
+class RedHash(object):
+    def __init__(self, redis: Redis, resource: str, kv: Mapping[str, str] = None):
+        self._redis = redis
+        self.resource = resource
+        if kv:
+            self._redis.hmset(self.resource, kv)
+
+    def __getitem__(self, item: str):
+        return self._redis.hget(self.resource, item)
+
+    def __setitem__(self, key, value):
+        return self._redis.hset(self.resource, key, value)
+
+    def __len__(self):
+        return self._redis.hlen(self.resource)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.clear()
+        if exc_val:
+            raise exc_val
+
+    def __str__(self):
+        return '<{}:{} @{}>'.format(self.__class__.__name__, self.resource, self._redis.__str__())
+
+    def get(self, item: str):
+        return self.__getitem__(item)
+
+    def __iter__(self) -> Iterable[Tuple[bytes, bytes]]:
+        return self.find()
+
+    def find(self, match: str = None) -> Iterable[Tuple[bytes, bytes]]:
+        return self._redis.hscan_iter(self.resource, match=match)
+
+    def clear(self):
+        return self._redis.delete(self.resource)
+
+    def counter(self, key: str, step: int, init: Optional[Callable[[], int]] = None) -> HashCounter:
+        return HashCounter(self._redis, self.resource, key, step, init)
