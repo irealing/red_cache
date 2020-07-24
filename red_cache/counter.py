@@ -75,7 +75,10 @@ class HashCounter(Counter):
     value = property(lambda self: int(self._redis.hget(self.resource, self._key)) or 0)
 
     def get(self):
-        return self._redis.hincrby(self.resource, self.key, self.step)
+        return self.incr()
+
+    def incr(self, value: int = None):
+        return self._redis.hincrby(self.resource, self.key, self.step if value is None else value)
 
     def __get__(self, instance, owner):
         if not instance:
