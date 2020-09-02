@@ -1,5 +1,7 @@
 import abc
+import json
 import logging
+import pickle
 from datetime import timedelta
 from typing import AnyStr, Generator, Tuple, Union, Callable, TypeVar, Any
 
@@ -12,6 +14,22 @@ _DecoratorFunc = Callable[[_Func], _Func]
 Encoder = Callable[[Any], AnyStr]
 Decoder = Callable[[bytes], Any]
 KeyType = Union[AnyStr, Callable[[], AnyStr]]
+
+
+def json_encoder(o: Any) -> AnyStr:
+    return json.dumps(o)
+
+
+def pickle_encoder(o: Any) -> AnyStr:
+    return pickle.dumps(o)
+
+
+def json_decoder(data: bytes) -> Any:
+    return json.loads(data)
+
+
+def pickle_decoder(data: bytes) -> Any:
+    return pickle.loads(data)
 
 
 class RedObject(metaclass=abc.ABCMeta):
@@ -70,6 +88,9 @@ class RedMapping(RedObject, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def incr(self, key: AnyStr, value: int = 1) -> int:
+        pass
+
+    def delete(self, key: str, *args: str) -> int:
         pass
 
 

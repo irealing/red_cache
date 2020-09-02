@@ -2,8 +2,7 @@ from typing import AnyStr, Generator, Tuple
 
 from redis import Redis
 
-from red_cache.typing import TTL
-from .typing import RedMapping
+from .typing import TTL, RedMapping
 
 __author__ = 'Memory_Leak<irealing@163.com>'
 
@@ -44,6 +43,9 @@ class RedCache(RedMapping):
     def exists(self) -> bool:
         return True
 
+    def delete(self, key: str, *args: str) -> int:
+        return self.redis.delete(key, *args)
+
 
 class RedHash(RedMapping):
     def __iter__(self):
@@ -73,3 +75,6 @@ class RedHash(RedMapping):
 
     def exists(self) -> bool:
         return self.redis.exists(self.resource)
+
+    def delete(self, key: str, *args: str) -> int:
+        return self.redis.hdel(self.resource, key, *args)
