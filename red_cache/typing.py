@@ -93,6 +93,9 @@ class RedMapping(RedObject, metaclass=abc.ABCMeta):
     def delete(self, key: str, *args: str) -> int:
         pass
 
+    def counter(self, resource: AnyStr, init: Union[Callable[[], int], int] = None) -> 'Counter':
+        return Counter(self, resource, init)
+
 
 class RedCollection(RedObject, metaclass=abc.ABCMeta):
     @abc.abstractmethod
@@ -109,3 +112,31 @@ class RedCollection(RedObject, metaclass=abc.ABCMeta):
 
     def filter(self, f: Callable[[bytes], bool] = lambda _: True) -> Generator[bytes, None, None]:
         yield from filter(f, self)
+
+
+class Counter(object):
+    def __init__(self, mapping: RedMapping, resource: AnyStr, init: Union[Callable[[], int], int] = None):
+        self.mapping = mapping
+        self.resource = resource
+        if init:
+            self.mapping.set(init() if callable(init) else init)
+
+    @property
+    def value(self):
+        return int(self.mapping.get(self.resource, '0'))
+
+    def get(self, step: int = 1) -> int:
+        return int(self.mapping.incr(self.resource, step))
+
+    def __get__(self, instance, owner):
+        if not instance:
+            return self
+        return self.get()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.mapping.delete(self.resource)
+        if exc_val:
+            raise exc_val
