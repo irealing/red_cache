@@ -2,12 +2,13 @@ from typing import AnyStr, Generator, Tuple
 
 from redis import Redis
 
-from .typing import TTL, RedMapping
+from ._base import _BaseMapping
+from .typing import TTL
 
 __author__ = 'Memory_Leak<irealing@163.com>'
 
 
-class RedCache(RedMapping):
+class RedCache(_BaseMapping):
 
     def __init__(self, redis: Redis):
         super().__init__(redis, "")
@@ -46,8 +47,11 @@ class RedCache(RedMapping):
     def delete(self, key: str, *args: str) -> int:
         return self.redis.delete(key, *args)
 
+    def red_hash(self, resource: AnyStr) -> 'RedHash':
+        return RedHash(self.redis, resource)
 
-class RedHash(RedMapping):
+
+class RedHash(_BaseMapping):
     def __iter__(self):
         return self.redis.hscan_iter(self.resource)
 
@@ -55,7 +59,7 @@ class RedHash(RedMapping):
         return self.redis.hexists(self.resource, key)
 
     def find(self, match: AnyStr = None) -> Generator[Tuple[bytes, bytes], None, None]:
-        return self.redis.hscan_iter() if not match else filter(lambda v: v == match, self)
+        return self.redis.hscan_iter(self.resource) if not match else filter(lambda v: v == match, self)
 
     def set(self, key: AnyStr, value: AnyStr, ex: TTL = None):
         return self.redis.hset(self.resource, key, value)
