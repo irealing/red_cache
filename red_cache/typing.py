@@ -93,8 +93,8 @@ class RedMapping(RedObject, metaclass=abc.ABCMeta):
     def delete(self, key: str, *args: str) -> int:
         pass
 
-    def counter(self, resource: AnyStr, init: Union[Callable[[], int], int] = None) -> 'Counter':
-        return Counter(self, resource, init)
+    def counter(self, resource: AnyStr, step: int = 1, init: Union[Callable[[], int], int] = None) -> 'Counter':
+        return Counter(self, resource, step, init)
 
 
 class RedCollection(RedObject, metaclass=abc.ABCMeta):
@@ -115,18 +115,20 @@ class RedCollection(RedObject, metaclass=abc.ABCMeta):
 
 
 class Counter(object):
-    def __init__(self, mapping: RedMapping, resource: AnyStr, init: Union[Callable[[], int], int] = None):
+    def __init__(self, mapping: RedMapping, resource: AnyStr, step: int = 1,
+                 init: Union[Callable[[], int], int] = None):
         self.mapping = mapping
         self.resource = resource
+        self._step = step
         if init:
-            self.mapping.set(init() if callable(init) else init)
+            self.mapping.set(self.resource, init() if callable(init) else init)
 
     @property
     def value(self):
         return int(self.mapping.get(self.resource, '0'))
 
-    def get(self, step: int = 1) -> int:
-        return int(self.mapping.incr(self.resource, step))
+    def get(self, step: int = None) -> int:
+        return int(self.mapping.incr(self.resource, step or self._step))
 
     def __get__(self, instance, owner):
         if not instance:
