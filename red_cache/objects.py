@@ -65,8 +65,8 @@ class RedHash(_BaseMapping):
         return self.redis.hset(self.resource, key, value)
 
     def get(self, key: AnyStr, default_value: AnyStr = None) -> bytes:
-        value = self.redis.get(key)
-        return value if value is None else default_value
+        value = self.redis.hget(self.resource, key)
+        return value if value is not None else default_value
 
     def incr(self, key: AnyStr, value: int = 1) -> int:
         return self.redis.hincrby(self.resource, key, value)

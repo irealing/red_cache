@@ -125,7 +125,8 @@ class Counter(object):
 
     @property
     def value(self):
-        return int(self.mapping.get(self.resource, '0'))
+        val = self.mapping.get(self.resource)
+        return int(val or 0)
 
     def get(self, step: int = None) -> int:
         return int(self.mapping.incr(self.resource, step or self._step))
