@@ -1,7 +1,8 @@
 import abc
 import functools
+from typing import Callable, Any
 
-from ._cache import CacheIt, _RmOptFactory
+from ._cache import CacheOpt, CacheIt, _RmOptFactory
 from .typing import RedMapping, KeyType, _DecoratorFunc, TTL, Encoder, Decoder, json_encoder, json_decoder, _Func
 from .typing import pickle_encoder
 
@@ -9,18 +10,28 @@ __author__ = 'Memory_Leak<irealing@163.com>'
 
 
 class _BaseMapping(RedMapping, metaclass=abc.ABCMeta):
+    @staticmethod
+    def _wrapped(opt: CacheOpt, func: Callable[..., Any]):
+        opt.mount(func)
+
+        @functools.wraps(func)
+        def _(*args, **kwargs):
+            return opt(*args, **kwargs)
+
+        return _
+
     def cache_it(self, key: KeyType, ttl: TTL = None, encoder: Encoder = json_encoder, decoder: Decoder = json_decoder,
                  force: bool = False) -> _DecoratorFunc:
         def _warp(func: _Func):
             it = CacheIt(self, key, ttl, encoder, decoder, force)
-            return functools.wraps(func)(it.mount(func))
+            return self._wrapped(it, func)
 
         return _warp
 
     def remove_it(self, key: KeyType, by_return: bool = False) -> _DecoratorFunc:
         def _wraps(func: _Func) -> _Func:
             it = _RmOptFactory.new(self, func, key, by_return)
-            return functools.wraps(func)(it.mount(func))
+            return self._wrapped(it, func)
 
         return _wraps
 
