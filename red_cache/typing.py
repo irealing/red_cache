@@ -13,7 +13,7 @@ _Func = Callable[..., _Ret]
 _DecoratorFunc = Callable[[_Func], _Func]
 Encoder = Callable[[Any], AnyStr]
 Decoder = Callable[[bytes], Any]
-KeyType = Union[AnyStr, Callable[[], AnyStr]]
+KeyType = Union[AnyStr, Callable[..., AnyStr]]
 
 
 def json_encoder(o: Any) -> AnyStr:

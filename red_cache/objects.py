@@ -1,9 +1,11 @@
+import functools
 from typing import AnyStr, Generator, Tuple
 
 from redis import Redis
+from redis.lock import Lock
 
 from ._base import _BaseMapping
-from .typing import TTL
+from .typing import TTL, KeyType
 
 __author__ = 'Memory_Leak<irealing@163.com>'
 
@@ -49,6 +51,18 @@ class RedCache(_BaseMapping):
 
     def red_hash(self, resource: AnyStr) -> 'RedHash':
         return RedHash(self.redis, resource)
+
+    def lock(self, key: KeyType, ex: int, timeout: int, delay: float = 0.1):
+        def _wrap(func):
+            @functools.wraps(func)
+            def _do(*args, **kwargs):
+                name = key(*args, **kwargs) if callable(key) else key
+                with Lock(self.redis, name, ex, sleep=delay, blocking_timeout=timeout):
+                    return func(*args, **kwargs)
+
+            return _do
+
+        return _wrap
 
 
 class RedHash(_BaseMapping):
